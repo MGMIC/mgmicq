@@ -14,8 +14,8 @@ def qc_docker_workflow(forward_read_filename, reverse_read_filename, basedir="/d
     resultDir = os.path.join(basedir, 'mgmic_tasks/', str(qc_docker_workflow.request.id))
     os.mkdirs(resultDir)
     ssh = pk.SSHClient()
-    #keys setup to login as mstacy
-    ssh.connect(docker_worker,22,'mstacy')
+    #keys setup to login as pass environmental username to docker
+    ssh.connect(docker_worker,22,os.environ['username'])
     cmd ='docker run -d -v /opt/local/scripts/:/scripts -v /data/static:/data/static bwawrik/bioinformatics /scripts/bin/Illumina_MySeq_Trim %s %s %s'
     cmd = cmd % (forward_read_filename,reverse_read_filename,resultDir) 
     stdin, stdout, stderr = ssh.exec_command(cmd)
