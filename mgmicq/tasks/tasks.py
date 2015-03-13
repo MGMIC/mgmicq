@@ -10,7 +10,7 @@ def add(x, y):
 
 
 @task()
-def qc_docker_workflow(forward_read_filename, reverse_read_filename, basedir="/data/static/",docker_worker='mgmic.oscer.ou.edu'):
+def qc_docker_workflow(forward_read_filename, reverse_read_filename, basedir="/data/static/",docker_worker=os.environ['docker_worker']):
     resultDir = os.path.join(basedir, 'mgmic_tasks/', str(qc_docker_workflow.request.id))
     os.mkdirs(resultDir)
     ssh = pk.SSHClient()
@@ -33,7 +33,7 @@ def qc_docker_workflow(forward_read_filename, reverse_read_filename, basedir="/d
                 sleep(10)
             else:
                 if poll['ExitCode']==0:
-                    return "http://mgmic.oscer.ou.edu/mgmic_tasks/%s" % (str(qc_docker_workflow.request.id))
+                    return "http://%s/mgmic_tasks/%s" % (docker_worker,str(qc_docker_workflow.request.id))
                 else:
                     raise Exception(poll['Error'])
     else:
