@@ -12,7 +12,7 @@ def add(x, y):
 @task()
 def qc_docker_workflow(forward_read_filename, reverse_read_filename, basedir="/data/static/",docker_worker=os.environ['docker_worker']):
     resultDir = os.path.join(basedir, 'mgmic_tasks/', str(qc_docker_workflow.request.id))
-    os.mkdirs(resultDir)
+    os.makedirs(resultDir)
     ssh = pk.SSHClient()
     #keys setup to login as pass environmental username to docker
     ssh.connect(docker_worker,22,os.environ['username'])
