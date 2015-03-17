@@ -73,7 +73,6 @@ def remote_task(
             docker_name = os.environ['docker_name']
         except:
             print "Please set environment variable docker_name="
-    if
 
     cmd = docker_command_string(
             docker_name,
