@@ -55,7 +55,12 @@ def remote_task(
     """
     task_id = str(remote_task.request.id)
 
-    ssh = ssh_client(docker_worker, 22, getpass.getuser())
+    try:
+        username = os.environ['docker_username']
+    except:
+        username = getpass.getuser()
+
+    ssh = ssh_client(docker_worker, 22, username)
 
     if docker_worker == None:
         try:
@@ -68,6 +73,7 @@ def remote_task(
             docker_name = os.environ['docker_name']
         except:
             print "Please set environment variable docker_name="
+    if
 
     cmd = docker_command_string(
             docker_name,
