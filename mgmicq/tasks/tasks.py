@@ -24,8 +24,8 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
     task_id = str(mgmic_qc_workflow.request.id)
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
-    foward_read = "%s%s" % (resultDir,forward_read_url.split('/')[-1])
-    reverse_read = "%s%s" % (resultDir,reverse_read_url.split('/')[-1])
+    foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
+    reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
     #get the forward and reverse read files
     call(['wget','-O',foward_read,forward_read_url])
     call(['wget','-O',foward_read,reverse_read_url])
