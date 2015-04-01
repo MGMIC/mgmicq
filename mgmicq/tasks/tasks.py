@@ -4,7 +4,7 @@ import paramiko as pk
 import os, json
 import getpass
 from dockertask import docker_task
-from subprocess import call
+from subprocess import call,STDOUT
 
 
 #Example task
@@ -26,10 +26,13 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
     os.makedirs(resultDir)
     foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
     reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+    logfile= open(resultDir + "/logfile.txt","w")
     #get the forward and reverse read files
     print 'wget','-O',foward_read,forward_read_url
-    call(['wget','-O',foward_read,forward_read_url])
-    call(['wget','-O',foward_read,reverse_read_url])
+    call(['wget','-O',foward_read,forward_read_url],stdout=logfile,stderr=STDOUT)
+    print 'wget','-O',reverse_read,reverse_read_url
+    call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile,stderr=STDOUT)
+    logfile.close()
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
     docker_cmd = "/scripts/bin/Illumina_MySeq_Trim %s %s %s" % (foward_read,reverse_read,resultDir)
     try:
