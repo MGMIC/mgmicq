@@ -3,12 +3,27 @@ from time import sleep
 import paramiko as pk
 import os, json
 import getpass
+from dockertask import docker_task
+
 
 #Example task
 @task()
 def add(x, y):
     result = x + y
     return result
+
+
+@task()
+def mgmic_qc_workflow(forward_read_filename, reverse_read_filename, basedir="/data/static/",docker_worker=os.environ['docker_worker']):
+    resultDir = os.path.join(basedir, 'mgmic_tasks/', str(qc_docker_workflow.request.id))
+    os.makedirs(resultDir)
+    docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
+    docker_cmd = "/scripts/bin/Illumina_MySeq_Trim %s %s %s" % (forward_read_filename,reverse_read_filename,resultDir)
+    try:
+        result = docker_task(docker_name="bwawrik/bioinformatics",docker_opts=docker_opts,docker_cmd=docker_cmd)
+        return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
+    except:
+        raise
 
 def ssh_client(host,port,username):
     """ Create a paramiko connection object and return it """
