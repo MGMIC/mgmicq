@@ -24,11 +24,14 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
     task_id = str(mgmic_qc_workflow.request.id)
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
-    for url in [forward_read_url, reverse_read_url]:
-        call['wget','-O',"%s%s" % (resultDir,url.split('/')[-1]),url]
-    docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
     foward_read = "%s%s" % (resultDir,forward_read_url.split('/')[-1])
-    reverse_read = "%s%s" % (resultDir,reverse_read_url.split('/')[-1]) 
+    reverse_read = "%s%s" % (resultDir,reverse_read_url.split('/')[-1])
+    #get the forward and reverse read files
+    call['wget','-O',foward_read,forward_read_url]
+    call['wget','-O',foward_read,reverse_read_url]
+    print 'wget','-O',foward_read,forward_read_url
+    print 'wget','-O',foward_read,reverse_read_url
+    docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
     docker_cmd = "/scripts/bin/Illumina_MySeq_Trim %s %s %s" % (foward_read,reverse_read,resultDir)
     try:
         result = docker_task(docker_name="bwawrik/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
