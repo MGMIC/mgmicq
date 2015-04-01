@@ -25,7 +25,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
     for url in [forward_read_url, reverse_read_url]:
-        call['wget','-O',"%s%s" % (resultDir,url.split('/')[-1],url]
+        call['wget','-O',"%s%s" % (resultDir,url.split('/')[-1]),url]
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
     foward_read = "%s%s" % (resultDir,forward_read_url.split('/')[-1])
     reverse_read = "%s%s" % (resultDir,reverse_read_url.split('/')[-1]) 
