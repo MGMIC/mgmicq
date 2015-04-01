@@ -15,7 +15,7 @@ def add(x, y):
 
 @task()
 def mgmic_qc_workflow(forward_read_filename, reverse_read_filename, basedir="/data/static/",docker_worker=os.environ['docker_worker']):
-    resultDir = os.path.join(basedir, 'mgmic_tasks/', str(qc_docker_workflow.request.id))
+    resultDir = os.path.join(basedir, 'mgmic_tasks/', str(mgmic_qc_workflow.request.id))
     os.makedirs(resultDir)
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
     docker_cmd = "/scripts/bin/Illumina_MySeq_Trim %s %s %s" % (forward_read_filename,reverse_read_filename,resultDir)
