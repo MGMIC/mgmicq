@@ -21,7 +21,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
         args: [forward_read_url, reverse_read_url]
         returns: resutl url
     """
-    task_id = str(mgmic_qc_workflow.request.id
+    task_id = str(mgmic_qc_workflow.request.id)
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
     for url in [forward_read_url, reverse_read_url]:
