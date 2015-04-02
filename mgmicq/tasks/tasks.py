@@ -28,10 +28,16 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
     reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
     logfile= open(resultDir + "/logfile.txt","w")
     #get the forward and reverse read files
-    print 'wget','-O',foward_read,forward_read_url
-    call(['wget','-O',foward_read,forward_read_url],stdout=logfile,stderr=STDOUT)
-    print 'wget','-O',reverse_read,reverse_read_url
-    call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile,stderr=STDOUT)
+    #print 'wget','-O',foward_read,forward_read_url
+    try:
+        call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
+    except:
+        raise Exception("Please Check URL %s" % forward_read_url)
+    #print 'wget','-O',reverse_read,reverse_read_url
+    try:
+        call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+    except:
+        raise Exception("Please Check URL %s" % reverse_read_url)
     logfile.close()
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
     docker_cmd = "/scripts/bin/Illumina_MySeq_Trim %s %s %s" % (foward_read,reverse_read,resultDir)
