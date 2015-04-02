@@ -2,6 +2,7 @@ from celery.task import task
 from time import sleep
 import paramiko as pk
 import os, json,httplib
+from urlparse import urlparse
 import getpass
 from dockertask import docker_task
 from subprocess import call,STDOUT
@@ -46,12 +47,10 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
         raise
 
 def check_url_exist(url):
-    c = httplib.HTTPConnection(url)
-    c.request("HEAD", '')
-    if c.getresponse().status == 200:
-        return True
-    else:
-        return False
+    p = urlparse(url)
+    c = httplib.HTTPConnection(p.netloc)
+    c.request("HEAD", p.path)
+    return c.getresponse().status < 400
 
 @task()
 def qc_docker_workflow(forward_read_filename, reverse_read_filename, basedir="/data/static/",docker_worker=os.environ['docker_worker']):
