@@ -41,7 +41,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
     docker_cmd = "/scripts/bin/Illumina_MySeq_Trim %s %s %s" % (foward_read,reverse_read,resultDir)
     try:
-        result = docker_task(docker_name="bwawrik/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
