@@ -19,7 +19,7 @@ def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/
     task_id = str(mgmic_16s_classification.request.id)
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
-    os.chdir(resultDir)
+    #os.chdir(resultDir)
     #Check if Urls exist
     if not check_url_exist(forward_read_url):
         raise Exception("Please Check URL %s" % forward_read_url)
@@ -32,7 +32,7 @@ def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/
     call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
     logfile.close()
     s16_database = "/data/DATABASES/16S/SSURef_111_candidate_db.udb"
-    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
+    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data -v /opt:/opt"
     docker_cmd = "/scripts/bin/classify_metagenome_by_16S_step1.pl %s %s %s %s" % (foward_read,reverse_read,s16_database,resultDir)
     try:
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
