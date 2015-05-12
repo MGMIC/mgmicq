@@ -14,6 +14,35 @@ def add(x, y):
     result = x + y
     return result
 
+@task()
+def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/static/"):
+    task_id = str(mgmic_qc_workflow.request.id)
+    resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
+    os.makedirs(resultDir)
+    os.chdir(resultDir)
+    #Check if Urls exist
+    if not check_url_exist(forward_read_url):
+        raise Exception("Please Check URL %s" % forward_read_url)
+    if not check_url_exist(reverse_read_url):
+        raise Exception("Please Check URL %s" % reverse_read_url)
+    foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
+    reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+    logfile= open(resultDir + "/logfile.txt","w")
+    call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
+    call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+    logfile.close()
+    16s_database = "/data/DATABASES/16S/SSURef_111_candidate_db.udb"
+    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
+    docker_cmd = "/scripts/bin/classify_metagenome_by_16S_step1.pl %s %s %s %s" % (foward_read,reverse_read,16s_database,resultDir)
+    try:
+        result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        #return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
+        docker_opts = "-t -v /opt/local/scripts/:/scripts -v /data:/data"
+        docker_cmd = "bash && Xvfb :1 -screen 0 1024x768x16 &> xvfb.log & && export DISPLAY=:1.0 && /scripts/bin/classify_metagenome_by_16S_step2.pl %s %s %s" % (foward_read,reverse_read,resultDir)
+        result = docker_task(docker_name="bwawrik/qiime",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
+    except:
+        raise
 
 @task()
 def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/"):
