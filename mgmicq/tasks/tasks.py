@@ -38,7 +38,7 @@ def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         #return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
         docker_opts = "-t -v /opt/local/scripts/:/scripts -v /data:/data"
-        docker_cmd = "bash && Xvfb :1 -screen 0 1024x768x16 &> xvfb.log & && export DISPLAY=:1.0 && /scripts/bin/classify_metagenome_by_16S_step2.pl %s %s %s" % (foward_read,reverse_read,resultDir)
+        docker_cmd = "/scripts/bin/classify_metagenome_by_16S_step2.pl %s %s %s" % (foward_read,reverse_read,resultDir)
         result = docker_task(docker_name="bwawrik/qiime",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
