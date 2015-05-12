@@ -31,7 +31,7 @@ def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/
     call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
     call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
     logfile.close()
-    16s_database = "/data/DATABASES/16S/SSURef_111_candidate_db.udb"
+    s16_database = "/data/DATABASES/16S/SSURef_111_candidate_db.udb"
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
     docker_cmd = "/scripts/bin/classify_metagenome_by_16S_step1.pl %s %s %s %s" % (foward_read,reverse_read,16s_database,resultDir)
     try:
