@@ -33,7 +33,7 @@ def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/
     logfile.close()
     s16_database = "/data/DATABASES/16S/SSURef_111_candidate_db.udb"
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
-    docker_cmd = "/scripts/bin/classify_metagenome_by_16S_step1.pl %s %s %s %s" % (foward_read,reverse_read,16s_database,resultDir)
+    docker_cmd = "/scripts/bin/classify_metagenome_by_16S_step1.pl %s %s %s %s" % (foward_read,reverse_read,s16_database,resultDir)
     try:
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         #return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
