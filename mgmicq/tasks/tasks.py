@@ -16,7 +16,7 @@ def add(x, y):
 
 @task()
 def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/static/"):
-    task_id = str(mgmic_qc_workflow.request.id)
+    task_id = str(mgmic_16s_classification.request.id)
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
     os.chdir(resultDir)
