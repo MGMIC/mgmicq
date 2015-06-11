@@ -108,12 +108,12 @@ def check_url_exist(url):
 """
 @task()
 def qc_docker_workflow(forward_read_filename, reverse_read_filename, basedir="/data/static/",docker_worker=os.environ['docker_worker']):
-    """
+    ""
         Deprecated version of docker_task
         Task: mgmic_qc_workflow
         args: [forward_read_filename, reverse_read_filename] This is local paths
         returns: resutl url
-    """
+    ""
     resultDir = os.path.join(basedir, 'mgmic_tasks/', str(qc_docker_workflow.request.id))
     os.makedirs(resultDir)
     ssh = pk.SSHClient()
