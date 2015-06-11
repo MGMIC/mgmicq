@@ -43,6 +43,31 @@ def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
+@task()
+def mgmic_assembly_ray(forward_read_url, reverse_read_url, basedir="/data/static/"):
+    task_id = str(mgmic_16s_classification.request.id)
+    resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
+    os.makedirs(resultDir)
+    #os.chdir(resultDir)
+    #Check if Urls exist
+    if not check_url_exist(forward_read_url):
+        raise Exception("Please Check URL %s" % forward_read_url)
+    if not check_url_exist(reverse_read_url):
+        raise Exception("Please Check URL %s" % reverse_read_url)
+    foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
+    reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+    logfile= open(resultDir + "/logfile.txt","w")
+    call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
+    call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+    logfile.close()
+    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data -v /opt:/opt"
+    docker_cmd = "/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s" % (foward_read,reverse_read,resultDir)
+    try:
+        result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
+    except:
+        raise
+
 
 @task()
 def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/"):
@@ -80,7 +105,7 @@ def check_url_exist(url):
     c = httplib.HTTPConnection(p.netloc)
     c.request("HEAD", p.path)
     return c.getresponse().status < 400
-
+"""
 @task()
 def qc_docker_workflow(forward_read_filename, reverse_read_filename, basedir="/data/static/",docker_worker=os.environ['docker_worker']):
     """
@@ -128,3 +153,4 @@ def docker_state(docker_id,ssh):
         return data[0]['State']
     else:
         raise Exception(std_err)
+"""
