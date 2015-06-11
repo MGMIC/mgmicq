@@ -54,14 +54,14 @@ def mgmic_assembly_ray(forward_read_url, reverse_read_url, basedir="/data/static
         raise Exception("Please Check URL %s" % forward_read_url)
     if not check_url_exist(reverse_read_url):
         raise Exception("Please Check URL %s" % reverse_read_url)
-    foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
-    reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+    #foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
+    #reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
     logfile= open(resultDir + "/logfile.txt","w")
     call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
     call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
     logfile.close()
-    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data -v /opt:/opt"
-    docker_cmd = "/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s" % (foward_read,reverse_read,resultDir)
+    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
+    docker_cmd = "/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s" % (forward_read_url.split('/')[-1],reverse_read_url.split('/')[-1],resultDir)
     try:
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
