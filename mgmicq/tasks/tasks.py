@@ -54,8 +54,8 @@ def mgmic_assembly_ray(forward_read_url, reverse_read_url, basedir="/data/static
         raise Exception("Please Check URL %s" % forward_read_url)
     if not check_url_exist(reverse_read_url):
         raise Exception("Please Check URL %s" % reverse_read_url)
-    #foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
-    #reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+    foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
+    reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
     logfile= open(resultDir + "/logfile.txt","w")
     call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
     call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
