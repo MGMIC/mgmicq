@@ -85,14 +85,14 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
     logfile= open(resultDir + "/logfile.txt","w")
     #check if local file
     if os.path.isfile(forward_read_url):
-        os.rename(forward_read_url, os.path.join(resultDir,forward_read_url.split('/')[-1])
+        os.rename(forward_read_url, os.path.join(resultDir,forward_read_url.split('/')[-1]))
     else:
         #Check if Urls exist
         if not check_url_exist(forward_read_url):
             raise Exception("Please Check URL %s" % forward_read_url)
         call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
     if os.path.isfile(reverse_read_url):
-        os.rename(reverse_read_url,os.path.join(resultDir,reverse_read_url.split('/')[-1])
+        os.rename(reverse_read_url,os.path.join(resultDir,reverse_read_url.split('/')[-1]))
     else:
         if not check_url_exist(reverse_read_url):
             raise Exception("Please Check URL %s" % reverse_read_url)
