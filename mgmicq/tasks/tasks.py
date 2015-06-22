@@ -79,18 +79,31 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
     task_id = str(mgmic_qc_workflow.request.id)
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
-    #Check if Urls exist
-    if not check_url_exist(forward_read_url):
-        raise Exception("Please Check URL %s" % forward_read_url)
-    if not check_url_exist(reverse_read_url):
-        raise Exception("Please Check URL %s" % reverse_read_url)
+
     foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
     reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
     logfile= open(resultDir + "/logfile.txt","w")
+    #check if local file
+    if os.path.isfile(forward_read_url):
+        os.rename(forward_read_url, os.path.join(resultDir,forward_read_url.split('/')[-1])
+    else:
+        #Check if Urls exist
+        if not check_url_exist(forward_read_url):
+            raise Exception("Please Check URL %s" % forward_read_url)
+        call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
+    if os.path.isfile(reverse_read_url):
+        os.rename(reverse_read_url,os.path.join(resultDir,reverse_read_url.split('/')[-1])
+    else:
+        if not check_url_exist(reverse_read_url):
+            raise Exception("Please Check URL %s" % reverse_read_url)
+        call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+    #foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
+    #reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+    #logfile= open(resultDir + "/logfile.txt","w")
     #get the forward and reverse read files
     #print 'wget','-O',foward_read,forward_read_url
-    call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
-    call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+    #call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
+    #call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
     logfile.close()
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data/static:/data/static"
     docker_cmd = "/scripts/bin/Illumina_MySeq_Trim %s %s %s" % (foward_read,reverse_read,resultDir)
