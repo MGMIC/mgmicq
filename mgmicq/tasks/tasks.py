@@ -33,7 +33,8 @@ def mgmic_16s_classification(forward_read_url, reverse_read_url, basedir="/data/
         call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
         logfile.close()
     else:
-        resultDir= result_dir
+        resultDir= os.path.join(result_dir,"16s_classification")
+        os.makedirs(resultDir)
         reverse_read= reverse_read_url
         foward_read = forward_read_url
 
@@ -69,7 +70,8 @@ def mgmic_assembly_ray(forward_read_url, reverse_read_url, basedir="/data/static
         call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
         logfile.close()
     else:
-        resultDir = result_dir
+        resultDir = os.path.join(result_dir,"assemble_ray")
+        os.makedirs(resultDir)
         reverse_read = reverse_read_url
         foward_read = forward_read_url
 
@@ -121,7 +123,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url, basedir="/data/static/
             mgmic_16s_classification.subtask(args=(fqc,rqc),kwargs={'result_dir':resultDir})
         ])
         result_set = job.apply_async()
-        data = result_set.join()
+        #data = result_set.join()
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
