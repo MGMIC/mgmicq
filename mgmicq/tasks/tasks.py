@@ -73,7 +73,7 @@ def mgmic_assembly_ray(forward_read_url, reverse_read_url, basedir="/data/static
         resultDir = os.path.join(result_dir,"assemble_ray")
         os.makedirs(resultDir)
         reverse_read = reverse_read_url
-        foward_read = forward_read_url
+        forward_read = forward_read_url
 
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
     docker_cmd = "/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s" % (forward_read,reverse_read,resultDir)
