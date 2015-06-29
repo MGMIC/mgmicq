@@ -76,7 +76,7 @@ def mgmic_assembly_ray(forward_read_url, reverse_read_url, basedir="/data/static
         foward_read = forward_read_url
 
     docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
-    docker_cmd = "/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s" % (forward_read.split('/')[-1],reverse_read.split('/')[-1],resultDir)
+    docker_cmd = "/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s" % (forward_read,reverse_read,resultDir)
     try:
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
