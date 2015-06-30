@@ -172,6 +172,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None):
         tasks= [mgmic_assembly_ray.subtask(args=(fqc,rqc),kwargs={'result_dir':resultDir}),
                 mgmic_16s_classification.subtask(args=(fqc,rqc),kwargs={'result_dir':resultDir}),]
         if functional_gene:
+            print type(functional_gene)
             for name in functional_gene:
                 tasks.append(mgmic_functional_gene.subtask(args=(fqc, rqc, name),
                             kwargs={'result_dir':resultDir,'parent_id':task_id}))
