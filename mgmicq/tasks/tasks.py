@@ -41,7 +41,7 @@ def mgmic_functional_gene(forward_read_url, reverse_read_url, database,result_di
         call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
         logfile.close()
     else:
-        resultDir= os.path.join(result_dir,"functional_gene",database.split('.')[0])
+        resultDir= os.path.join(result_dir,"functional_gene",database)
         os.makedirs(resultDir)
         reverse_read= reverse_read_url
         foward_read = forward_read_url
