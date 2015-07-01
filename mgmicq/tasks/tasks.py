@@ -21,9 +21,9 @@ def mgmic_functional_gene(forward_read_url, reverse_read_url, database,result_di
     #Get local database file
     default_dbs = "http://mgmic.oscer.ou.edu/api/catalog/data/data_portal/gene_database/.json?query=%s"
     query ="{'spec':{'name':'%s'}}" % database
-    database = requests.get(default_dbs % query).json()
-    database = database['results'][0]
-    db_local_file = database['local_file']
+    data = requests.get(default_dbs % query).json()
+    data = data['results'][0]
+    db_local_file = data['local_file']
     #Check Input and setup gene search docker
     if not result_dir:
         resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
@@ -41,7 +41,7 @@ def mgmic_functional_gene(forward_read_url, reverse_read_url, database,result_di
         call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
         logfile.close()
     else:
-        resultDir= os.path.join(result_dir,"functional_gene",database)
+        resultDir= os.path.join(result_dir,"functional_gene",database.split('.')[0])
         os.makedirs(resultDir)
         reverse_read= reverse_read_url
         foward_read = forward_read_url
