@@ -16,6 +16,82 @@ def add(x, y):
     result = x + y
     return result
 @task()
+def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
+    task_id = str(amplicon_workflow.request.id)
+    foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
+    reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+    logfile= open(resultDir + "/logfile.txt","w")
+    #check if mapfile is local file
+    if os.path.isfile(mapfile):
+        filename=mapfile.split('/')[-1]
+        os.rename(mapfile, os.path.join(resultDir,filename)) 
+        mapfile = os.path.join(resultDir,filename)
+    else:
+        #write map file to resultDir
+        f1=open("%s/%s" % (resultDir,"input.map"),'w')
+        f1.write(mapfile)
+        f1.close()
+        mapfile = "%s/%s" % (resultDir,"input.map")
+    #check if local file
+    if os.path.isfile(forward_read_url):
+        os.rename(forward_read_url, os.path.join(resultDir,forward_read_url.split('/')[-1]))
+    else:
+        #Check if Urls exist
+        if not check_url_exist(forward_read_url):
+            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % forward_read_url)
+        call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
+    if os.path.isfile(reverse_read_url):
+        os.rename(reverse_read_url,os.path.join(resultDir,reverse_read_url.split('/')[-1]))
+    else:
+        if not check_url_exist(reverse_read_url):
+            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % reverse_read_url)
+        call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+    logfile.close()
+
+    docker_opts = "-v /data:/data -v /opt:/opt"
+    docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s" % (foward_read,reverse_read,resultDir)
+    try:
+        #Step 1
+        result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        docker_opts = "-i -t -v /opt:/opt -v /data:/data"
+        docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,mapfile,resultDir)
+        #Step 2
+        result = docker_task(docker_name="qiime_env",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
+    except:
+        raise
+    
+@task() 
+def check_mapfile(mapfile):
+    task_id = str(check_mapfile.request.id)
+    resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
+    os.makedirs(resultDir)
+    #check if mapfile is local file
+    if os.path.isfile(mapfile):
+        filename=mapfile.split('/')[-1]
+        os.rename(mapfile, os.path.join(resultDir,filename))
+        mapfile = os.path.join(resultDir,filename)
+    else:
+        #write map file to resultDir
+        f1=open("%s/%s" % (resultDir,"input.map"),'w')
+        f1.write(mapfile)
+        f1.close()
+        mapfile = "%s/%s" % (resultDir,"input.map")
+    #Setup Docker container
+    docker_opts = "-v /data:/data"
+    docker_cmd = "validate_mapping_file.py -m %s -o  %s " % (mapfile,resultDir)
+    try:
+        result = docker_task(docker_name="mgmic/qiime",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        out=open("%s/%s" % (resultDir,"input.map.log"),'r')
+        if "No errors or warnings found in mapping file." in out.read():
+            return True
+        else:
+            return "http://%s/mgmic_tasks/%s/%s" % (result['host'],result['task_id'],"input.map.html")
+    except:
+        raise
+    
+
+@task()
 def mgmic_functional_gene(forward_read_url, reverse_read_url, database,result_dir=None,parent_id=None):
     task_id = str(mgmic_functional_gene.request.id)
     #Get local database file
@@ -135,7 +211,7 @@ def mgmic_assembly_ray(forward_read_url, reverse_read_url, result_dir=None,paren
 
 
 @task()
-def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None):
+def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,callback=None):
     """
         Task: mgmic_qc_workflow
         args: [forward_read_url, reverse_read_url]
@@ -178,10 +254,23 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None):
                             kwargs={'result_dir':resultDir,'parent_id':task_id}))
         job = TaskSet(tasks=tasks)
         result_set = job.apply_async()
+        generate_report(result_set.taskset_id,"callback").apply_async()
+        #result_set.taskset_id
+        #result_set.subtasks
+        #if callback is not None:
+        #    subtask(
         #data = result_set.join()
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
+
+@task(bind=True)
+def generate_report(setid, subtasks, callback, interval=60, max_retries=None):
+    result = TaskSetResult(setid, subtasks)
+    if result.ready():
+        return "result report called"
+        #return subtask(callback).delay(result.join())
+    self.retry(countdown=interval, max_retries=max_retries)
 
 def check_url_exist(url):
     p = urlparse(url)
