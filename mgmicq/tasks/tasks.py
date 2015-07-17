@@ -255,7 +255,8 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
                             kwargs={'result_dir':resultDir,'parent_id':task_id}))
         job = TaskSet(tasks=tasks)
         result_set = job.apply_async()
-        callback = generate_report.subtask(args=(result_set.taskset_id,result_set.subtasks,"callback")).apply_async()
+        #callback = generate_report.subtask(args=(result_set.taskset_id,result_set.subtasks,"callback")).apply_async()
+        generate_report.subtask(args=(result_set)).apply_async()
         #report= callback.apply_async()
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
         #result_set.taskset_id
@@ -268,9 +269,9 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
         raise
 
 @task(bind=True)
-def generate_report(setid, subtasks, callback, interval=60, max_retries=None):
-    result = TaskSetResult(setid, subtasks)
-    if result.ready():
+def generate_report(result_set, interval=60, max_retries=None): #setid, subtasks, callback, interval=60, max_retries=None):
+    #result = TaskSetResult(setid, subtasks)
+    if result_set.ready():
         return "result report called"
         #return subtask(callback).delay(result.join())
     self.retry(countdown=interval, max_retries=max_retries)
