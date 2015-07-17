@@ -271,12 +271,12 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
         raise
 
 @task()
-def generate_report(setid, subtasks, callback, interval=60, max_retries=None):
+def generate_report(setid, subtasks, callback, interval=60): # , max_retries=None):
     result = TaskSetResult(setid, subtasks)
     if result.ready():
         return "result report called"
         #return subtask(callback).delay(result.join())
-    self.retry(countdown=interval, max_retries=None)
+    self.retry(countdown=interval) #, max_retries=None)
 
 def check_url_exist(url):
     p = urlparse(url)
