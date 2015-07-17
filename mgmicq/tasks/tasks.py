@@ -270,7 +270,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
     except:
         raise
 
-@task(bind=True)
+@task()
 def generate_report(setid, subtasks, callback, interval=60, max_retries=None):
     result = TaskSetResult(setid, subtasks)
     if result.ready():
