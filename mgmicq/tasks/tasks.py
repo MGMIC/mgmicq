@@ -7,6 +7,7 @@ import getpass
 from dockertask import docker_task
 from subprocess import call,STDOUT
 from celery.task.sets import TaskSet
+from celery.results import TaskSetResult
 import requests
 #Default MGMIC config
 basedir="/data/static/"
