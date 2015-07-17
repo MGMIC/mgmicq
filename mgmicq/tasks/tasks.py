@@ -255,7 +255,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
                             kwargs={'result_dir':resultDir,'parent_id':task_id}))
         job = TaskSet(tasks=tasks)
         result_set = job.apply_async()
-        generate_report(result_set.taskset_id,"callback").apply_async()
+        generate_report.subtask(args=(result_set.taskset_id,result_set.subtasks,"callback").apply_async()
         #result_set.taskset_id
         #result_set.subtasks
         #if callback is not None:
