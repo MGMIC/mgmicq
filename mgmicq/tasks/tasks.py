@@ -276,7 +276,7 @@ def generate_report(setid, subtasks, callback, interval=60, max_retries=None):
     if result.ready():
         return "result report called"
         #return subtask(callback).delay(result.join())
-    generate_report.retry(countdown=interval, max_retries=max_retries)
+    self.retry(countdown=interval, max_retries=None)
 
 def check_url_exist(url):
     p = urlparse(url)
