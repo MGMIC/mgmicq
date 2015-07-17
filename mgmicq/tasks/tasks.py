@@ -256,12 +256,13 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
         job = TaskSet(tasks=tasks)
         result_set = job.apply_async()
         generate_report.subtask(args=(result_set.taskset_id,result_set.subtasks,"callback").apply_async()
+        return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
         #result_set.taskset_id
         #result_set.subtasks
         #if callback is not None:
         #    subtask(
         #data = result_set.join()
-        return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
+        #return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
 
