@@ -257,7 +257,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
                             kwargs={'result_dir':resultDir,'parent_id':task_id}))
         job = TaskSet(tasks=tasks)
         result_set = job.apply_async()
-        callback = generate_report.subtask(args=(result_set.taskset_id,result_set.subtasks,"callback"),kwargs={'max_retries':None}).apply_async()
+        callback = generate_report.subtask(args=(result_set.taskset_id,result_set.subtasks,"callback"),kwargs={'max_retries':2880}).apply_async()
         #generate_report.subtask(args=(result_set)).apply_async()
         #report= callback.apply_async()
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
@@ -276,7 +276,7 @@ def generate_report(setid, subtasks, callback, interval=60, max_retries=None):
     if result.ready():
         return "result report called"
         #return subtask(callback).delay(result.join())
-    generate_report.retry(countdown=interval, max_retries=None)
+    generate_report.retry(countdown=interval, max_retries=max_retries)
 
 def check_url_exist(url):
     p = urlparse(url)
