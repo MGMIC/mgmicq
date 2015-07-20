@@ -257,7 +257,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
                             kwargs={'result_dir':resultDir,'parent_id':task_id}))
         job = TaskSet(tasks=tasks)
         result_set = job.apply_async()
-        callback = generate_report.subtask(args=(result_set.taskset_id,result_set.subtasks,"callback"),kwargs={'max_retries':2880}).apply_async()
+        callback = generate_report.subtask(args=(foward_read,reverse_read,task_id,result_set.taskset_id,result_set.subtasks,"callback"),kwargs={'max_retries':2880}).apply_async()
         #generate_report.subtask(args=(result_set)).apply_async()
         #report= callback.apply_async()
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
@@ -271,10 +271,16 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ca
         raise
 
 @task()
-def generate_report(setid, subtasks, callback, interval=60, max_retries=None):
+def generate_report(fread,rread,task_id,setid, subtasks, callback, interval=60, max_retries=None):
     result = TaskSetResult(setid, subtasks)
     if result.ready():
-        return "result report called"
+        docker_opts = "-v /data:/data"
+        docker_cmd = "make_report -f %s -r %s -t %s" % (fread,rread,task_id)
+        try:
+            result = docker_task(docker_name="mgmic/report",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+            return "http://%s/mgmic_tasks/%s/report.html" % (result['host'],result['task_id'])
+        except:
+            raise
         #return subtask(callback).delay(result.join())
     generate_report.retry(countdown=interval, max_retries=max_retries)
 
