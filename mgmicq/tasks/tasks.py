@@ -21,6 +21,7 @@ def add(x, y):
 @task()
 def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
     task_id = str(amplicon_workflow.request.id)
+    resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
     reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
     logfile= open(resultDir + "/logfile.txt","w")
