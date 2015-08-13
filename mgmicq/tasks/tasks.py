@@ -53,7 +53,7 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
         call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
     logfile.close()
 
-    docker_opts = "-v /data:/data -v /opt:/opt"
+    docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
     docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s" % (foward_read,reverse_read,resultDir)
     try:
         #Step 1
