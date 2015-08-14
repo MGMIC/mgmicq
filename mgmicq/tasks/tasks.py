@@ -56,6 +56,10 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
         if not check_url_exist(reverse_read_url):
             raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % reverse_read_url)
         call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+    foward_read = gunzip(foward_read,logfile)
+    reverse_read = gunzip(reverse_read,logfile)
+    map_read = os.path.join(resultDir,mapfile.split('/')[-1])
+    map_read = gunzip(map_read,logfile)
     logfile.close()
 
     docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
@@ -64,13 +68,19 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
         #Step 1
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         docker_opts = "-i -t -v /opt:/opt -v /data:/data"
-        docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,mapfile.split('/')[-1],resultDir)
+        docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,map_read.split('/')[-1],resultDir)
         #Step 2
         result = docker_task(docker_name="qiime_env",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
-    
+
+def gunzip(filename,logfile):
+    if filename[-3:]==".gz":
+        call(['gunzip',filename])
+        return filename[:-3]
+    return filename    
+
 @task() 
 def check_mapfile(mapfile):
     task_id = str(check_mapfile.request.id)
