@@ -32,11 +32,16 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
         os.rename(mapfile, os.path.join(resultDir,filename)) 
         mapfile = os.path.join(resultDir,filename)
     else:
+        #Check if Urls exist
+        if not check_url_exist(mapfile):
+            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % mapfile)
+        map_read = os.path.join(resultDir,mapfile.split('/')[-1])
+        call(['wget','-O',map_read,mapfile],stdout=logfile)
         #write map file to resultDir
-        f1=open("%s/%s" % (resultDir,"input.map"),'w')
-        f1.write(mapfile)
-        f1.close()
-        mapfile = "%s/%s" % (resultDir,"input.map")
+        #f1=open("%s/%s" % (resultDir,"input.map"),'w')
+        #f1.write(mapfile)
+        #f1.close()
+        #mapfile = "%s/%s" % (resultDir,"input.map")
     #check if local file
     if os.path.isfile(forward_read_url):
         os.rename(forward_read_url, os.path.join(resultDir,forward_read_url.split('/')[-1]))
