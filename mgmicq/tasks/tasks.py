@@ -73,7 +73,7 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
         docker_opts = docker_config["docker_opts"][1]
         #docker_opts = "-i -t -v /opt:/opt -v /data:/data"
         #docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,map_read.split('/')[-1],resultDir)
-        docker_config["docker_cmd"][1] % (foward_read,map_read.split('/')[-1],resultDir)
+        docker_cmd = docker_config["docker_cmd"][1] % (foward_read,map_read.split('/')[-1],resultDir)
         #Step 2
         result = docker_task(docker_name="qiime_env",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
