@@ -67,6 +67,9 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
     #docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
     #docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s" % (foward_read,reverse_read,resultDir)
     docker_cmd = docker_config["docker_cmd"][0] % (foward_read,reverse_read,resultDir)
+    print "*********************************"
+    print docker_opts,docker_cmd
+    print "*********************************"
     try:
         #Step 1
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
