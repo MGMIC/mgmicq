@@ -9,6 +9,7 @@ from subprocess import call,STDOUT
 from celery.task.sets import TaskSet
 from celery.result import TaskSetResult
 from celery import current_app
+from config import amplicon_workflow_config
 #from celery.task import subtask
 import requests
 #Default MGMIC config
@@ -61,14 +62,18 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
     map_read = os.path.join(resultDir,mapfile.split('/')[-1])
     map_read = gunzip(map_read,logfile)
     logfile.close()
-
-    docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
-    docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s" % (foward_read,reverse_read,resultDir)
+    docker_config = amplicon_workflow_config[os.getenv('docker_worker')]
+    docker_opts = docker_config["docker_opts"][0]
+    #docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
+    #docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s" % (foward_read,reverse_read,resultDir)
+    docker_cmd = docker_config["docker_cmd"][0] % (foward_read,reverse_read,resultDir)
     try:
         #Step 1
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
-        docker_opts = "-i -t -v /opt:/opt -v /data:/data"
-        docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,map_read.split('/')[-1],resultDir)
+        docker_opts = docker_config["docker_opts"][1]
+        #docker_opts = "-i -t -v /opt:/opt -v /data:/data"
+        #docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,map_read.split('/')[-1],resultDir)
+        docker_config["docker_cmd"][1] % (foward_read,map_read.split('/')[-1],resultDir)
         #Step 2
         result = docker_task(docker_name="qiime_env",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
@@ -77,7 +82,7 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
 
 def gunzip(filename,logfile):
     if filename[-3:]==".gz":
-        call(['gunzip',filename])
+        call(['gunzip',filename],stdout=logfile)
         return filename[:-3]
     return filename    
 
