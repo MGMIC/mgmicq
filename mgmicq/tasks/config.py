@@ -11,4 +11,10 @@ amplicon_workflow_config = {"mgmic.oscer.ou.edu":
                          "docker_cmd":[  "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s",
                                          "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s"]
                         },
+                    "10.178.59.111":
+                        {"docker_opts":["-v /Users/mstacy/data_munge/risser_crazy/data:/data -v /Users/mstacy/data_munge/risser_crazy/data/local/scripts:/opt/local/scripts",
+                                                        "-i -t -v /Users/mstacy/data_munge/risser_crazy/data:/data -v /Users/mstacy/data_munge/risser_crazy/data/local/scripts:/opt/local/scripts"],
+                         "docker_cmd":[  "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s",
+                                         "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s"]
+                        },
              		}
