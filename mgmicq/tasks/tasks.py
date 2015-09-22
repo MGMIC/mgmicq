@@ -19,6 +19,69 @@ basedir="/data/static/"
 def add(x, y):
     result = x + y
     return result
+
+@task()
+def mgmic_future_script_1(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    task_id = str(mgmic_future_script_1.request.id)
+    script = "MGMIC_future_script_1.pl"
+    return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
+
+@task()
+def mgmic_future_script_2(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    task_id = str(mgmic_future_script_2.request.id)
+    script = "MGMIC_future_script_2.pl"
+    return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
+
+@task()
+def mgmic_future_script_3(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    task_id = str(mgmic_future_script_3.request.id)
+    script = "MGMIC_future_script_3.pl"
+    return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
+
+@task()
+def mgmic_future_script_4(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    task_id = str(mgmic_future_script_4.request.id)
+    script = "MGMIC_future_script_4.pl"
+    return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
+
+@task()
+def mgmic_future_script_5(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    task_id = str(mgmic_future_script_5.request.id)
+    script = "MGMIC_future_script_5.pl"
+    return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
+
+def mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name):
+    resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
+    os.makedirs(resultDir)
+    logfile= open(resultDir + "/logfile.txt","w")
+    assembly_file = task_file_setup(assembly,resultDir,logfile)
+    predicted_proteins_file= task_file_setup(predicted_proteins,resultDir,logfile)
+    predicted_genes_file = task_file_setup(predicted_genes,resultDir,logfile)
+    forwardreads_file = task_file_setup(forwardreads,resultDir,logfile)
+    reversereads_file = task_file_setup(reversereads,resultDir,logfile)
+    docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
+    docker_cmd = "/opt/local/scripts/bin/%s %s %s %s %s %s %s"
+    docker_cmd= docker_cmd % (script,assembly_file,predicted_proteins_file,predicted_genes_file,forwardreads_file,reversereads_file,resultDir)
+    try:
+        result = docker_task(docker_name=docker_name,docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
+    except:
+        raise
+    
+def task_file_setup(filename,resultDir,logfile):
+    #check if mapfile is local file
+    if os.path.isfile(filename):
+        return_file = os.path.join(resultDir,filename.split('/')[-1])
+        os.rename(filename, return_file)
+        return return_file
+    else:
+        #Check if Urls exist
+        if not check_url_exist(filename):
+            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % filename)
+        return_file = os.path.join(resultDir,filename.split('/')[-1])
+        call(['wget','-O',return_file ,filename],stdout=logfile)
+        return return_file
+
 @task()
 def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
     task_id = str(amplicon_workflow.request.id)
