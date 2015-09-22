@@ -67,62 +67,18 @@ def mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_gen
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
-    
-def task_file_setup(filename,resultDir,logfile):
-    #check if mapfile is local file
-    if os.path.isfile(filename):
-        return_file = os.path.join(resultDir,filename.split('/')[-1])
-        os.rename(filename, return_file)
-        return return_file
-    else:
-        #Check if Urls exist
-        if not check_url_exist(filename):
-            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % filename)
-        return_file = os.path.join(resultDir,filename.split('/')[-1])
-        call(['wget','-O',return_file ,filename],stdout=logfile)
-        return return_file
 
 @task()
 def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
     task_id = str(amplicon_workflow.request.id)
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
-    foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
-    reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
     logfile= open(resultDir + "/logfile.txt","w")
-    #check if mapfile is local file
-    if os.path.isfile(mapfile):
-        filename=mapfile.split('/')[-1]
-        os.rename(mapfile, os.path.join(resultDir,filename)) 
-        mapfile = os.path.join(resultDir,filename)
-    else:
-        #Check if Urls exist
-        if not check_url_exist(mapfile):
-            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % mapfile)
-        map_read = os.path.join(resultDir,mapfile.split('/')[-1])
-        call(['wget','-O',map_read,mapfile],stdout=logfile)
-        #write map file to resultDir
-        #f1=open("%s/%s" % (resultDir,"input.map"),'w')
-        #f1.write(mapfile)
-        #f1.close()
-        #mapfile = "%s/%s" % (resultDir,"input.map")
-    #check if local file
-    if os.path.isfile(forward_read_url):
-        os.rename(forward_read_url, os.path.join(resultDir,forward_read_url.split('/')[-1]))
-    else:
-        #Check if Urls exist
-        if not check_url_exist(forward_read_url):
-            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % forward_read_url)
-        call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
-    if os.path.isfile(reverse_read_url):
-        os.rename(reverse_read_url,os.path.join(resultDir,reverse_read_url.split('/')[-1]))
-    else:
-        if not check_url_exist(reverse_read_url):
-            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % reverse_read_url)
-        call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+    foward_read = task_file_setup(forward_read_url,resultDir,logfile)
+    reverse_read = task_file_setup(reverse_read_url,resultDir,logfile)
+    map_read = task_file_setup(mapfile ,resultDir,logfile) 
     foward_read = gunzip(foward_read,logfile)
     reverse_read = gunzip(reverse_read,logfile)
-    map_read = os.path.join(resultDir,mapfile.split('/')[-1])
     map_read = gunzip(map_read,logfile)
     logfile.close()
     docker_config = amplicon_workflow_config[os.getenv('docker_worker')]
@@ -371,6 +327,20 @@ def generate_report(fread,rread,task_id,setid, subtasks, callback, interval=60, 
             raise
         #return subtask(callback).delay(result.join())
     generate_report.retry(countdown=interval, max_retries=max_retries)
+
+def task_file_setup(filename,resultDir,logfile):
+    #check if filename is local file
+    if os.path.isfile(filename):
+        return_file = os.path.join(resultDir,filename.split('/')[-1])
+        os.rename(filename, return_file)
+        return return_file
+    else:
+        #Check if Urls exist
+        if not check_url_exist(filename):
+            raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % filename)
+        return_file = os.path.join(resultDir,filename.split('/')[-1])
+        call(['wget','-O',return_file ,filename],stdout=logfile)
+        return return_file
 
 def check_url_exist(url):
     p = urlparse(url)
