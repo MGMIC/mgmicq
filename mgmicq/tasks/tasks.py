@@ -22,30 +22,100 @@ def add(x, y):
 
 @task()
 def mgmic_future_script_1(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    """
+        Input Arguments
+            Assembly file local path or URL
+                #arg[0] = "Contigs.fasta"" from the assembly_ray folder
+            Predicted Proteins - Local path or URL
+                #arg[1] = "prodigal.orfs.faa" from the assembly_ray folder
+            Predicted Genes
+                #arg[2] = "prodigal.orfs.fna" from the assembly_ray folder
+            Forward Reads - Local file path or URL
+                #arg[3] = "F.QCed.fastq"
+            Reverse Reads - Local file path or URL
+                #arg[4] = "R.QCed.fastq"
+            Docker Name (optional, default: 'mgmic/bioinformatics') - Name of the docker container that will run script  
+    """
     task_id = str(mgmic_future_script_1.request.id)
     script = "MGMIC_future_script_1.pl"
     return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
 
 @task()
 def mgmic_future_script_2(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    """
+        Input Arguments
+            Assembly file local path or URL
+                #arg[0] = "Contigs.fasta"" from the assembly_ray folder
+            Predicted Proteins - Local path or URL
+                #arg[1] = "prodigal.orfs.faa" from the assembly_ray folder
+            Predicted Genes
+                #arg[2] = "prodigal.orfs.fna" from the assembly_ray folder
+            Forward Reads - Local file path or URL
+                #arg[3] = "F.QCed.fastq"
+            Reverse Reads - Local file path or URL
+                #arg[4] = "R.QCed.fastq"
+            Docker Name (optional, default: 'mgmic/bioinformatics') - Name of the docker container that will run script
+    """
     task_id = str(mgmic_future_script_2.request.id)
     script = "MGMIC_future_script_2.pl"
     return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
 
 @task()
 def mgmic_future_script_3(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    """
+        Input Arguments
+            Assembly file local path or URL
+                #arg[0] = "Contigs.fasta"" from the assembly_ray folder
+            Predicted Proteins - Local path or URL
+                #arg[1] = "prodigal.orfs.faa" from the assembly_ray folder
+            Predicted Genes
+                #arg[2] = "prodigal.orfs.fna" from the assembly_ray folder
+            Forward Reads - Local file path or URL
+                #arg[3] = "F.QCed.fastq"
+            Reverse Reads - Local file path or URL
+                #arg[4] = "R.QCed.fastq"
+            Docker Name (optional, default: 'mgmic/bioinformatics') - Name of the docker container that will run script
+    """
     task_id = str(mgmic_future_script_3.request.id)
     script = "MGMIC_future_script_3.pl"
     return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
 
 @task()
 def mgmic_future_script_4(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    """
+        Input Arguments
+            Assembly file local path or URL
+                #arg[0] = "Contigs.fasta"" from the assembly_ray folder
+            Predicted Proteins - Local path or URL
+                #arg[1] = "prodigal.orfs.faa" from the assembly_ray folder
+            Predicted Genes
+                #arg[2] = "prodigal.orfs.fna" from the assembly_ray folder
+            Forward Reads - Local file path or URL
+                #arg[3] = "F.QCed.fastq"
+            Reverse Reads - Local file path or URL
+                #arg[4] = "R.QCed.fastq"
+            Docker Name (optional, default: 'mgmic/bioinformatics') - Name of the docker container that will run script
+    """
     task_id = str(mgmic_future_script_4.request.id)
     script = "MGMIC_future_script_4.pl"
     return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
 
 @task()
 def mgmic_future_script_5(assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name="mgmic/bioinformatics"):
+    """
+        Input Arguments
+            Assembly file local path or URL
+                #arg[0] = "Contigs.fasta"" from the assembly_ray folder
+            Predicted Proteins - Local path or URL
+                #arg[1] = "prodigal.orfs.faa" from the assembly_ray folder
+            Predicted Genes
+                #arg[2] = "prodigal.orfs.fna" from the assembly_ray folder
+            Forward Reads - Local file path or URL
+                #arg[3] = "F.QCed.fastq"
+            Reverse Reads - Local file path or URL
+                #arg[4] = "R.QCed.fastq"
+            Docker Name (optional, default: 'mgmic/bioinformatics') - Name of the docker container that will run script
+    """
     task_id = str(mgmic_future_script_5.request.id)
     script = "MGMIC_future_script_5.pl"
     return mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_genes,forwardreads,reversereads,docker_name)
