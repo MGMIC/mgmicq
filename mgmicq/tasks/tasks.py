@@ -409,6 +409,8 @@ def task_file_setup(filename,resultDir,logfile):
         if not check_url_exist(filename):
             raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % filename)
         return_file = os.path.join(resultDir,filename.split('/')[-1])
+        logfile.write('This is a test\n')
+        print return_file, filename
         call(['wget','-O',return_file ,filename],stdout=logfile,stderr=logfile)
         return return_file
 
