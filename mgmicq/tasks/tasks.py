@@ -151,8 +151,8 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
     reverse_read = gunzip(reverse_read,logfile)
     map_read = gunzip(map_read,logfile)
     logfile.close()
-    docker_config = amplicon_workflow_config[os.getenv('docker_worker')]
-    docker_opts = docker_config["docker_opts"][0]
+    #docker_config = amplicon_workflow_config[os.getenv('docker_worker')]
+    #docker_opts = docker_config["docker_opts"][0]
     docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
     docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s" % (foward_read,reverse_read,resultDir)
     #docker_cmd = docker_config["docker_cmd"][0] % (foward_read,reverse_read,resultDir)
@@ -163,7 +163,7 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
         #Step 1
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         #docker_opts = docker_config["docker_opts"][1]
-        docker_opts = "-i -t -v /opt:/opt -v /data:/data"
+        docker_opts = "-i -t -v /opt/local/scripts:/opt/local/scripts -v /data:/data"
         docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,map_read.split('/')[-1],resultDir)
         #docker_cmd = docker_config["docker_cmd"][1] % (foward_read,map_read.split('/')[-1],resultDir)
         #Step 2
@@ -409,7 +409,7 @@ def task_file_setup(filename,resultDir,logfile):
         if not check_url_exist(filename):
             raise Exception("Please Check URL or Local File Path(local files must be in /data directory) %s" % filename)
         return_file = os.path.join(resultDir,filename.split('/')[-1])
-        call(['wget','-O',return_file ,filename],stdout=logfile)
+        call(['wget','-O',return_file ,filename],stdout=logfile,stderr=logfile)
         return return_file
 
 def check_url_exist(url):
