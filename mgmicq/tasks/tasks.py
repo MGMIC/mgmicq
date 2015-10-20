@@ -9,11 +9,16 @@ from subprocess import call,STDOUT
 from celery.task.sets import TaskSet
 from celery.result import TaskSetResult
 from celery import current_app
-from config import amplicon_workflow_config
+from config import workflow_config
 #from celery.task import subtask
 import requests
 #Default MGMIC config
 basedir="/data/static/"
+#docker config settings
+try:
+    docker_config=workflow_config[os.getenv('docker_worker')]
+except:
+    docker_config=workflow_config["default"]
 #Example task
 @task()
 def add(x, y):
@@ -129,7 +134,7 @@ def mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_gen
     predicted_genes_file = task_file_setup(predicted_genes,resultDir,logfile)
     forwardreads_file = task_file_setup(forwardreads,resultDir,logfile)
     reversereads_file = task_file_setup(reversereads,resultDir,logfile)
-    docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
+    docker_opts = "-v %s:/data -v %s:/opt/local/scripts" % (docker_config["data_dir"],docker_config["script_dir"])
     docker_cmd = "/opt/local/scripts/bin/%s %s %s %s %s %s %s"
     docker_cmd= docker_cmd % (script,assembly_file,predicted_proteins_file,predicted_genes_file,forwardreads_file,reversereads_file,resultDir)
     try:
@@ -139,7 +144,7 @@ def mgmic_future_script(task_id,script,assembly,predicted_proteins,predicted_gen
         raise
 
 @task()
-def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
+def amplicon_workflow(forward_read_url, reverse_read_url,mapfile,runflags=None):
     task_id = str(amplicon_workflow.request.id)
     resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
     os.makedirs(resultDir)
@@ -147,66 +152,24 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile):
     foward_read = task_file_setup(forward_read_url,resultDir,logfile)
     reverse_read = task_file_setup(reverse_read_url,resultDir,logfile)
     map_read = task_file_setup(mapfile ,resultDir,logfile) 
-    foward_read = gunzip(foward_read,logfile)
-    reverse_read = gunzip(reverse_read,logfile)
-    map_read = gunzip(map_read,logfile)
     logfile.close()
-    #docker_config = amplicon_workflow_config[os.getenv('docker_worker')]
-    #docker_opts = docker_config["docker_opts"][0]
-    docker_opts = "-v /data:/data -v /opt/local/scripts:/opt/local/scripts"
-    docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s" % (foward_read,reverse_read,resultDir)
-    #docker_cmd = docker_config["docker_cmd"][0] % (foward_read,reverse_read,resultDir)
-    #print "*********************************"
-    #print docker_opts,docker_cmd
-    #print "*********************************"
     try:
-        #Step 1
+        #Step 1 Bioinformatics docker contatiner
+        docker_opts = "-v %s:/data -v %s:/opt/local/scripts" % (docker_config["data_dir"],docker_config["script_dir"])
+        docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part1.pl %s %s %s" % (foward_read,reverse_read,resultDir)
+        if runflags:
+            docker_cmd = "%s '%s'" % (docker_cmd,runflags)
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
-        #docker_opts = docker_config["docker_opts"][1]
-        docker_opts = "-i -t -v /opt/local/scripts:/opt/local/scripts -v /data:/data"
+        #Step 2 qiime docker container
+        docker_opts = "-i -t -v %s:/opt/local/scripts -v %s:/data" % (docker_config["data_dir"],docker_config["script_dir"])
         docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,map_read.split('/')[-1],resultDir)
-        #docker_cmd = docker_config["docker_cmd"][1] % (foward_read,map_read.split('/')[-1],resultDir)
-        #Step 2
+        if runflags:
+            docker_cmd = "%s '%s'" % (docker_cmd,runflags)
         result = docker_task(docker_name="qiime_env",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        #return result http directory
         return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
-
-def gunzip(filename,logfile):
-    if filename[-3:]==".gz":
-        call(['gunzip',filename],stdout=logfile)
-        return filename[:-3]
-    return filename    
-
-@task() 
-def check_mapfile(mapfile):
-    task_id = str(check_mapfile.request.id)
-    resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
-    os.makedirs(resultDir)
-    #check if mapfile is local file
-    if os.path.isfile(mapfile):
-        filename=mapfile.split('/')[-1]
-        os.rename(mapfile, os.path.join(resultDir,filename))
-        mapfile = os.path.join(resultDir,filename)
-    else:
-        #write map file to resultDir
-        f1=open("%s/%s" % (resultDir,"input.map"),'w')
-        f1.write(mapfile)
-        f1.close()
-        mapfile = "%s/%s" % (resultDir,"input.map")
-    #Setup Docker container
-    docker_opts = "-v /data:/data"
-    docker_cmd = "validate_mapping_file.py -m %s -o  %s " % (mapfile,resultDir)
-    try:
-        result = docker_task(docker_name="mgmic/qiime",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
-        out=open("%s/%s" % (resultDir,"input.map.log"),'r')
-        if "No errors or warnings found in mapping file." in out.read():
-            return True
-        else:
-            return "http://%s/mgmic_tasks/%s/%s" % (result['host'],result['task_id'],"input.map.html")
-    except:
-        raise
-    
 
 @task()
 def mgmic_functional_gene(forward_read_url, reverse_read_url, database,result_dir=None,parent_id=None):
@@ -398,12 +361,18 @@ def generate_report(fread,rread,task_id,setid, subtasks, callback, interval=60, 
         #return subtask(callback).delay(result.join())
     generate_report.retry(countdown=interval, max_retries=max_retries)
 
+def gunzip(filename,logfile):
+    if filename[-3:]==".gz":
+        call(['gunzip',filename],stdout=logfile)
+        return filename[:-3]
+    return filename
+
 def task_file_setup(filename,resultDir,logfile):
     #check if filename is local file
     if os.path.isfile(filename):
         return_file = os.path.join(resultDir,filename.split('/')[-1])
         os.rename(filename, return_file)
-        return return_file
+        return gunzip(return_file,logfile)
     else:
         #Check if Urls exist
         if not check_url_exist(filename):
@@ -412,7 +381,7 @@ def task_file_setup(filename,resultDir,logfile):
         logfile.write('This is a test\n')
         print return_file, filename
         call(['wget','-O',return_file ,filename],stdout=logfile,stderr=logfile)
-        return return_file
+        return gunzip(return_file,logfile)
 
 def check_url_exist(url):
     p = urlparse(url)
