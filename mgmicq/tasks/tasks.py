@@ -153,6 +153,7 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile,runflags=None):
     reverse_read = task_file_setup(reverse_read_url,resultDir,logfile)
     map_read = task_file_setup(mapfile ,resultDir,logfile) 
     logfile.close()
+    print "************************* ", runflags, " **********************************"
     try:
         #Step 1 Bioinformatics docker contatiner
         docker_opts = "-v %s:/data -v %s:/opt/local/scripts" % (docker_config["data_dir"],docker_config["script_dir"])
