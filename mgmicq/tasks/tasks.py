@@ -161,7 +161,7 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile,runflags=None):
             docker_cmd = "%s '%s'" % (docker_cmd,runflags)
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         #Step 2 qiime docker container
-        docker_opts = "-i -t -v %s:/opt/local/scripts -v %s:/data" % (docker_config["data_dir"],docker_config["script_dir"])
+        docker_opts = "-i -t -v %s:/opt/local/scripts -v %s:/data" % (docker_config["script_dir"],docker_config["data_dir"])
         docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_16SAmplicon_analysis_part2.pl %s %s %s" % (foward_read,map_read.split('/')[-1],resultDir)
         if runflags:
             docker_cmd = "%s '%s'" % (docker_cmd,runflags)
