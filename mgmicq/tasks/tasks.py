@@ -183,29 +183,27 @@ def mgmic_functional_gene(forward_read_url, reverse_read_url, database,result_di
     db_local_file = data['local_file']
     #Check Input and setup gene search docker
     if not result_dir:
+        #Make result directory
         resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
         os.makedirs(resultDir)
-        #os.chdir(resultDir)
-        #Check if Urls exist
-        if not check_url_exist(forward_read_url):
-            raise Exception("Please Check URL %s" % forward_read_url)
-        if not check_url_exist(reverse_read_url):
-            raise Exception("Please Check URL %s" % reverse_read_url)
-        foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
-        reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+        #Logfile and set task files
         logfile= open(resultDir + "/logfile.txt","w")
-        call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
-        call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+        foward_read = task_file_setup(forward_read_url,resultDir,logfile)
+        reverse_read = task_file_setup(reverse_read_url,resultDir,logfile)
         logfile.close()
     else:
+        #Make Result Directory
         resultDir= os.path.join(result_dir,"functional_gene",database.split('.')[0])
         os.makedirs(resultDir)
+        #Create forward and reverse file location
         reverse_read= reverse_read_url
         foward_read = forward_read_url
-    #Setup Docker container
-    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data -v /opt:/opt"
-    docker_cmd = "/scripts/bin/Illumina_MySeq_Quantify_Funtional_Gene.pl %s %s %s %s" % (foward_read,reverse_read,db_local_file,resultDir)
     try:
+        #Setup Docker container
+        docker_opts = "-v %s:/opt/local/scripts -v %s:/data " % (docker_config["script_dir"],docker_config["data_dir"])
+        docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_Quantify_Funtional_Gene.pl %s %s %s %s" % (foward_read,reverse_read,db_local_file,resultDir)
+        if runflags:
+            docker_cmd = "%s '%s'" % (docker_cmd,runflags)
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         if parent_id:
             return "http://%s/mgmic_tasks/%s/%s/%s" % (result['host'],parent_id,"functional_gene",database.split('.')[0])
@@ -216,38 +214,37 @@ def mgmic_functional_gene(forward_read_url, reverse_read_url, database,result_di
 
 
 @task()
-def mgmic_16s_classification(forward_read_url, reverse_read_url, result_dir=None,parent_id=None,runflags=None,on_off=None):
+def mgmic_16s_classification(forward_read_url, reverse_read_url, result_dir=None,parent_id=None,runflags=None,on_off="on"):
     task_id = str(mgmic_16s_classification.request.id)
     if not result_dir:
+        #Make Result Directory
         resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
         os.makedirs(resultDir)
-        #os.chdir(resultDir)
-        #Check if Urls exist
-        if not check_url_exist(forward_read_url):
-            raise Exception("Please Check URL %s" % forward_read_url)
-        if not check_url_exist(reverse_read_url):
-            raise Exception("Please Check URL %s" % reverse_read_url)
-        foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
-        reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+        #Logfile and set task files
         logfile= open(resultDir + "/logfile.txt","w")
-        call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
-        call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+        foward_read = task_file_setup(forward_read_url,resultDir,logfile)
+        reverse_read = task_file_setup(reverse_read_url,resultDir,logfile)
         logfile.close()
     else:
+        #Make Result Directory
         resultDir= os.path.join(result_dir,"16s_classification")
         os.makedirs(resultDir)
+        #Create forward and reverse file location
         reverse_read= reverse_read_url
         foward_read = forward_read_url
-
-    s16_database = "/data/DATABASES/16S/SSURef_111_candidate_db.udb"
-    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data -v /opt:/opt"
-    docker_cmd = "/scripts/bin/classify_metagenome_by_16S_step1.pl %s %s %s %s" % (foward_read,reverse_read,s16_database,resultDir)
     try:
+        s16_database = "/data/DATABASES/16S/SSURef_111_candidate_db.udb"
+        #Setup Docker container
+        docker_opts = "-v %s:/opt/local/scripts -v %s:/data" % (docker_config["script_dir"],docker_config["data_dir"])
+        docker_cmd = "/opt/local/scripts/bin/classify_metagenome_by_16S_step1.pl %s %s %s %s %s" % (foward_read,reverse_read,s16_database,resultDir,on_off)
+        if runflags:
+            docker_cmd = "%s '%s'" % (docker_cmd,runflags)
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
-        #return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
-        docker_opts = "-i -t -v /opt:/opt -v /data:/data"
-        docker_cmd = "/opt/local/scripts/bin/classify_metagenome_by_16S_step2.pl %s %s %s" % (foward_read,reverse_read,resultDir)
-        #result = docker_task(docker_name="bwawrik/qiime",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+        #Setup Docker container Step 2
+        docker_opts = "-i -t -v %s:/opt/local/scripts -v %s:/data" % (docker_config["script_dir"],docker_config["data_dir"])
+        docker_cmd = "/opt/local/scripts/bin/classify_metagenome_by_16S_step2.pl %s %s %s %s" % (foward_read,reverse_read,resultDir,on_off)
+        if runflags:
+            docker_cmd = "%s '%s'" % (docker_cmd,runflags)
         result = docker_task(docker_name="qiime_env",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         if parent_id:
             return "http://%s/mgmic_tasks/%s/%s" % (result['host'],parent_id,"16s_classification")
@@ -255,33 +252,34 @@ def mgmic_16s_classification(forward_read_url, reverse_read_url, result_dir=None
             return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
     except:
         raise
+
 @task()
-def mgmic_assembly_ray(forward_read_url, reverse_read_url, result_dir=None,parent_id=None,runflags=None,on_off=None):
+def mgmic_assembly_ray(forward_read_url, reverse_read_url, result_dir=None,parent_id=None,runflags=None,on_off="on"):
     task_id = str(mgmic_assembly_ray.request.id)
     if not result_dir:
+        #Make Result Directory
         resultDir = os.path.join(basedir, 'mgmic_tasks/', task_id)
         os.makedirs(resultDir)
-        #os.chdir(resultDir)
-        #Check if Urls exist
-        if not check_url_exist(forward_read_url):
-            raise Exception("Please Check URL %s" % forward_read_url)
-        if not check_url_exist(reverse_read_url):
-            raise Exception("Please Check URL %s" % reverse_read_url)
-        foward_read = os.path.join(resultDir,forward_read_url.split('/')[-1])
-        reverse_read = os.path.join(resultDir,reverse_read_url.split('/')[-1])
+        #Logfile and set task files
         logfile= open(resultDir + "/logfile.txt","w")
-        call(['wget','-O',foward_read,forward_read_url],stdout=logfile)
-        call(['wget','-O',reverse_read,reverse_read_url],stdout=logfile)
+        foward_read = task_file_setup(forward_read_url,resultDir,logfile)
+        reverse_read = task_file_setup(reverse_read_url,resultDir,logfile)
         logfile.close()
     else:
+        #Make Result Directory
         resultDir = os.path.join(result_dir,"assemble_ray")
         os.makedirs(resultDir)
+        #Create forward and reverse file location
         reverse_read = reverse_read_url
         forward_read = forward_read_url
 
-    docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
-    docker_cmd = "/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s" % (forward_read,reverse_read,resultDir)
+    #docker_opts = "-v /opt/local/scripts/:/scripts -v /data:/data"
+    #docker_cmd = "/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s" % (forward_read,reverse_read,resultDir)
     try:
+        docker_opts = "-v %s:/opt/local/scripts -v %s:/data" % (docker_config["script_dir"],docker_config["data_dir"])
+        docker_cmd = "/opt/local/scripts/bin/Illumina_MySeq_Assemble_Ray31.pl %s %s %s %s" % (forward_read,reverse_read,resultDir,on_off)
+        if runflags:
+            docker_cmd = "%s '%s'" % (docker_cmd,runflags)
         result = docker_task(docker_name="mgmic/bioinformatics",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         if parent_id:
             return "http://%s/mgmic_tasks/%s" % (result['host'],parent_id,"assemble_ray")
