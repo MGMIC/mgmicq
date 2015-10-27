@@ -349,7 +349,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ru
         #generate_report.subtask(args=(result_set)).apply_async()
         temp=[]
         for result in result_set.subtasks:
-            temp.append({"task":result.task_name,"task_id":result.task_id})
+            temp.append({"task":"result.task_name","task_id":result.id})
         #report= callback.apply_async()
         print dir(callback)
         print temp
