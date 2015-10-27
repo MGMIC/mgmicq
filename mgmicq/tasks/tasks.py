@@ -348,8 +348,8 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ru
         callback = generate_report.subtask(args=(foward_read,reverse_read,task_id,result_set.taskset_id,result_set.subtasks,"callback"),kwargs={'max_retries':2880}).apply_async()
         #generate_report.subtask(args=(result_set)).apply_async()
         temp=[]
-        for result in result_set.subtasks:
-            temp.append({"task":"result.task_name","task_id":result.id})
+        for result_d in result_set.subtasks:
+            temp.append({"task":"result.task_name","task_id":result_d.id})
         #report= callback.apply_async()
         print dir(callback)
         print temp
