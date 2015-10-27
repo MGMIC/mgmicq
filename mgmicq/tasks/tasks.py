@@ -347,9 +347,12 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ru
         result_set = job.apply_async()
         callback = generate_report.subtask(args=(foward_read,reverse_read,task_id,result_set.taskset_id,result_set.subtasks,"callback"),kwargs={'max_retries':2880}).apply_async()
         #generate_report.subtask(args=(result_set)).apply_async()
+        temp=[]
+        for result in result_set.subtasks:
+            temp.append(result.serializable())
         #report= callback.apply_async()
         print dir(callback)
-        return {"result_url":"http://%s/mgmic_tasks/%s" % (result['host'],result['task_id']),"subtasks":result_set.subtasks,"report":"report"}
+        return {"result_url":"http://%s/mgmic_tasks/%s" % (result['host'],result['task_id']),"subtasks":temp,"report":callback.serializable()}
         #result_set.taskset_id
         #result_set.subtasks
         #if callback is not None:
