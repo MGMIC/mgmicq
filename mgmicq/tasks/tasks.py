@@ -352,7 +352,8 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ru
             temp.append({"task":result.task_name,"task_id":result.task_id})
         #report= callback.apply_async()
         print dir(callback)
-        return {"result_url":"http://%s/mgmic_tasks/%s" % (result['host'],result['task_id']),"subtasks":temp,"report":{"report_id":callback.task_id,"task":callback.task_name}}
+        print temp
+        return {"result_url":"http://%s/mgmic_tasks/%s" % (result['host'],result['task_id']),"subtasks":temp,"report":{"report_id":"task"}}
         #result_set.taskset_id
         #result_set.subtasks
         #if callback is not None:
