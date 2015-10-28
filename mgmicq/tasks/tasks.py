@@ -334,7 +334,6 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ru
                             kwargs={'max_retries':2880}).apply_async()
         temp=[]
         fgen_idx =0
-        mgmicq.tasks.tasks.mgmic_functional_gene
         for result_d in result_set.subtasks:
             if result_d.task_name == "mgmicq.tasks.tasks.mgmic_functional_gene":
                 temp.append({"task":result_d.task_name,"task_id":result_d.id,"genedb":functional_gene[fgen_idx]})
