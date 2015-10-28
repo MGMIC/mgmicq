@@ -290,11 +290,17 @@ def mgmic_assembly_ray(forward_read_url, reverse_read_url, result_dir=None,paren
 
 
 @task()
-def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,runflags=None,workflow={"qc":"on","s16":"on","assemble":"on"},callback=None):
+def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,runflags=None,workflow={"qc":"on","s16":"on","assemble":"on"}):
     """
         Task: mgmic_qc_workflow
         args: [forward_read_url, reverse_read_url]
-        returns: resutl url
+        kwargs: functional_gene: List of udb gene database to search
+                runflags: customize run scripts - Boris will control this action
+                workflow: object with on_off set default ={"qc":"on","s16":"on","assemble":"on"}
+        returns: {resutl_url:string,
+                  subtasks:[{task,task_id}]
+                 }
+                  
     """
     #Setup Result Directory
     task_id = str(mgmic_qc_workflow.request.id)
@@ -324,21 +330,28 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ru
                             kwargs={'result_dir':resultDir,'parent_id':task_id,'runflags':runflags}))
         job = TaskSet(tasks=tasks)
         result_set = job.apply_async()
-        report_result = generate_report.subtask(args=(foward_read,reverse_read,task_id,result_set.taskset_id,result_set.subtasks,"callback"),
+        report_result = generate_report.subtask(args=(foward_read,reverse_read,task_id,result_set.taskset_id,result_set.subtasks),
                             kwargs={'max_retries':2880}).apply_async()
         temp=[]
+        fgen_idx =0
+        mgmicq.tasks.tasks.mgmic_functional_gene
         for result_d in result_set.subtasks:
-            temp.append({"task":result_d.task_name,"task_id":result_d.id})
+            if result_d.task_name == "mgmicq.tasks.tasks.mgmic_functional_gene":
+                temp.append({"task":result_d.task_name,"task_id":result_d.id,"genedb":functional_gene[fgen_idx]})
+                fgen_idx+=1
+            else:
+                temp.append({"task":result_d.task_name,"task_id":result_d.id})
+        temp.append({"task_id":report_result.id,"task_name":report_result.task_name})
         return {"result_url":"http://%s/mgmic_tasks/%s" % (result['host'],result['task_id']),"subtasks":temp,
                 "report":{"task_id":report_result.id,"task_name":report_result.task_name}}
     except:
         raise
 
 @task()
-def generate_report(fread,rread,task_id,setid, subtasks, callback, interval=60, max_retries=None):
+def generate_report(fread,rread,task_id,setid, subtasks, interval=60, max_retries=None):
     result = TaskSetResult(setid, subtasks)
     if result.ready():
-        docker_opts = "-v /data:/data"
+        docker_opts = "-v %s:/data" % (docker_config["data_dir"])
         docker_cmd = "make_report -f %s -r %s -t %s" % (fread,rread,task_id)
         try:
             result = docker_task(docker_name="mgmic/report",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
