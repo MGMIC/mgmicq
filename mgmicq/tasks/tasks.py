@@ -344,7 +344,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=[],runf
                 fgen_idx+=1
             else:
                 temp.append({"task":result_d.task_name,"task_id":result_d.id})
-        temp.append({"task_id":report_result.id,"task_name":report_result.task_name})
+        temp.append({"task_id":report_result.id,"task":report_result.task_name})
         return {"result_url":"http://%s/mgmic_tasks/%s" % (result['host'],result['task_id']),"subtasks":temp,
                 "report":{"task_id":report_result.id,"task_name":report_result.task_name}}
     except:
