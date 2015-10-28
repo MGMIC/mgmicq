@@ -290,7 +290,7 @@ def mgmic_assembly_ray(forward_read_url, reverse_read_url, result_dir=None,paren
 
 
 @task()
-def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,runflags=None,workflow={"qc":"on","s16":"on","assemble":"on"}):
+def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=[],runflags=None,workflow={"qc":"on","s16":"on","assemble":"on"}):
     """
         Task: mgmic_qc_workflow
         args: [forward_read_url, reverse_read_url]
@@ -330,7 +330,11 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ru
                             kwargs={'result_dir':resultDir,'parent_id':task_id,'runflags':runflags}))
         job = TaskSet(tasks=tasks)
         result_set = job.apply_async()
-        report_result = generate_report.subtask(args=(foward_read,reverse_read,task_id,result_set.taskset_id,result_set.subtasks),
+        if len(functional_gene)>0:
+            workflow["func_gene"] = "on"
+        else:
+            workflow["func_gene"] = "off"
+        report_result = generate_report.subtask(args=(foward_read,reverse_read,task_id,result_set.taskset_id,result_set.subtasks,workflow),
                             kwargs={'max_retries':2880}).apply_async()
         temp=[]
         fgen_idx =0
@@ -347,11 +351,11 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=None,ru
         raise
 
 @task()
-def generate_report(fread,rread,task_id,setid, subtasks, interval=60, max_retries=None):
+def generate_report(fread,rread,task_id,setid, subtasks,workflow, interval=60, max_retries=None):
     result = TaskSetResult(setid, subtasks)
     if result.ready():
         docker_opts = "-v %s:/data" % (docker_config["data_dir"])
-        docker_cmd = "make_report -f %s -r %s -t %s" % (fread,rread,task_id)
+        docker_cmd = "make_report -f %s -r %s -t %s -w '%s'" % (fread,rread,task_id,str(workflow))
         try:
             result = docker_task(docker_name="mgmic/report",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
             return "http://%s/mgmic_tasks/%s/report.html" % (result['host'],result['task_id'])
