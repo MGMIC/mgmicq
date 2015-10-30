@@ -313,6 +313,7 @@ def mgmic_qc_workflow(forward_read_url, reverse_read_url,functional_gene=[],runf
     reverse_read = task_file_setup(reverse_read_url,resultDir,logfile)
     logfile.close()
     try:
+        print "****************************** ", type(workflow)," 8888888888888888888888888888888888888888888888888888888"
         #Step 1 Bioinformatics docker contatiner
         docker_opts = "-v %s:/data -v %s:/scripts" % (docker_config["data_dir"],docker_config["script_dir"])
         docker_cmd = "/scripts/bin/Illumina_MySeq_Trim %s %s %s %s" % (foward_read,reverse_read,resultDir,workflow.get("qc","on"))
@@ -355,7 +356,8 @@ def generate_report(fread,rread,task_id,setid, subtasks,workflow, interval=60, m
     result = TaskSetResult(setid, subtasks)
     if result.ready():
         docker_opts = "-v %s:/data" % (docker_config["data_dir"])
-        docker_cmd = "make_report -f %s -r %s -t %s -w '%s'" % (fread,rread,task_id,str(workflow))
+        wflow = "%s;%s;%s;%s" % (workflow["qc"],workflow["s16"],workflow["assemble"],workflow["func_gene"])
+        docker_cmd = "make_report -f %s -r %s -t %s -w %s" % (fread,rread,task_id,wflow)
         try:
             result = docker_task(docker_name="mgmic/report",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
             return "http://%s/mgmic_tasks/%s/report.html" % (result['host'],result['task_id'])
@@ -391,3 +393,4 @@ def check_url_exist(url):
     c = httplib.HTTPConnection(p.netloc)
     c.request("HEAD", p.path)
     return c.getresponse().status < 400
+        
