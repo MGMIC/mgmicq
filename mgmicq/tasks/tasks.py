@@ -356,7 +356,7 @@ def generate_report(fread,rread,task_id,setid, subtasks,workflow, interval=60, m
     result = TaskSetResult(setid, subtasks)
     if result.ready():
         docker_opts = "-v %s:/data" % (docker_config["data_dir"])
-        wflow = "%s;%s;%s;%s" % (workflow["qc"],workflow["s16"],workflow["assemble"],workflow["func_gene"])
+        wflow = "%s,%s,%s,%s" % (workflow["qc"],workflow["s16"],workflow["assemble"],workflow["func_gene"])
         docker_cmd = "make_report -f %s -r %s -t %s -w %s" % (fread,rread,task_id,wflow)
         try:
             result = docker_task(docker_name="mgmic/report",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
