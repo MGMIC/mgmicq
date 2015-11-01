@@ -168,7 +168,8 @@ def amplicon_workflow(forward_read_url, reverse_read_url,mapfile,runflags=None):
             docker_cmd = "%s '%s'" % (docker_cmd,runflags)
         result = docker_task(docker_name="qiime_env",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
         #return result http directory
-        return "http://%s/mgmic_tasks/%s" % (result['host'],result['task_id'])
+        return {'data':"http://%s/mgmic_tasks/%s" % (result['host'],result['task_id']),
+                'qiime_results':"http://%s/mgmic_tasks/%s/diversity/" % (result['host'],result['task_id'])}
     except:
         raise
 
