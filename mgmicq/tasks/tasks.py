@@ -361,6 +361,10 @@ def generate_report(fread,rread,task_id,setid, subtasks,workflow, interval=60, m
         docker_cmd = "make_report -f %s -r %s -t %s -w %s" % (fread,rread,task_id,wflow)
         try:
             result = docker_task(docker_name="mgmic/report",docker_opts=docker_opts,docker_command=docker_cmd,id=task_id)
+            #try:
+            #    call(["/opt/local/bin/filename","/data/static/mgmic_tasks/{0}".format(task_id) ])
+            #except:
+            #    pass
             return "http://%s/mgmic_tasks/%s/report.html" % (result['host'],result['task_id'])
         except:
             raise
